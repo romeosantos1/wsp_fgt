@@ -9,6 +9,8 @@ CREATE TABLE USUARIO (
     RUC varchar(20)  NOT NULL,
     DIRECCION varchar(200)  NOT NULL,
     EMAIL varchar(200)  NOT NULL,
+    token varchar(1000)  NOT NULL,
+    bussines_id varchar(500) not null,
     CONSTRAINT USUARIO_pk PRIMARY KEY (ID)
 );
 
@@ -16,7 +18,6 @@ CREATE TABLE USUARIO (
 CREATE TABLE USUARIO_KEY (
     ID bigint  NOT NULL AUTO_INCREMENT,
     api_key varchar(50)  NOT NULL,
-    token varchar(200)  NOT NULL,
     USUARIO_ID bigint  NOT NULL,
     CONSTRAINT USUARIO_KEY_pk PRIMARY KEY (ID)
 );
