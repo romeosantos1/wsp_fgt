@@ -23,10 +23,10 @@ const listarUsuarios = (({RUC})=>{
 })
 const listarPlantillas = (({RUC})=>{
   return new Promise(async (resolve,reject)=>{
-    const {token,api_key} = await listarUsuarios({RUC}) 
-    const url = `https://graph.facebook.com/v22.0/${api_key}/message_templates`
-    console.log({url})
-    const templates = await axios.get(
+    const {token,bussines_id} = await listarUsuarios({RUC}) 
+    const url = `https://graph.facebook.com/v22.0/${bussines_id}/message_templates`
+    console.log({url,token})
+    axios.get(
       url,
       {
         headers: {
@@ -34,9 +34,27 @@ const listarPlantillas = (({RUC})=>{
           'Content-Type': 'application/json',
         },
       }
-    )  
-    console.log({templates})  
-    resolve(templates)
+    ).then(response=>{
+      //console.log(response.data)
+      resolve(response.data)
+    })
+    //console.log({res})  
+  })
+})
+const actualizarPlantillas =  ( ({RUC})=>{
+  return new Promise(async(resolve,reject)=>{
+    /*const usuario = await listarUsuarios({RUC})
+    const plantillas = await listarPlantillas({RUC})*/
+    const arrIns = []
+    Promise.all([
+      listarUsuarios({RUC}),
+      listarPlantillas({RUC})
+    ]).then(([usuario,plantillas])=>{
+      plantillas = plantillas.data
+      plantillas.forEach()
+      console.log({usuario,plantillas})
+      resolve(usuario)
+    })
   })
 })
 app.post('/send-message', async (req, res) => {   
@@ -110,20 +128,29 @@ app.post('/show-usuario',async(req,res)=>{
   console.log(datos)
   res.json(datos);  
 })  
-app.post('/show-template',async(req,res)=>{
+app.get('/show-template',async(req,res)=>{
   const { RUC } = req.body;
   const datos = await listarPlantillas({RUC})
-  console.log(datos)
+  //console.log(datos)
   res.json(datos);  
 })  
 app.post('/registrar-usuario',async(req,res)=>{
-  const {RUC,razon_social,direccion,email,token,api_key} = req.body;
-  const [ID] = await db("USUARIO").insert({RUC,razon_social,direccion,email})
-  await db("usuario_key").insert({token,api_key,USUARIO_ID:ID}).finally(() => {
+  const {RUC,razon_social,direccion,email,token,api_key,bussines_id} = req.body;
+  const [ID] = await db("USUARIO").insert({RUC,razon_social,direccion,email,bussines_id,token})
+  await db("usuario_key").insert({api_key,USUARIO_ID:ID}).finally(() => {
     db.destroy(); // Cerrar la conexión después de la consulta
   });
   //res.json("Registrado correctamente con el codigo",ID);
   console.log("Xd")
+  res.json("Registrado Correctamente");  
+})
+app.post("/actualizar-plantilla",async(req,res)=>{
+  const { RUC } = req.body;
+  const datos = await actualizarPlantillas({RUC})
+  //const usuarios = await listarUsuarios({RUC})
+  //const datos = await listarPlantillas({RUC})
+  //console.log({datos})
+  res.json("(Y)");  
 })
   // Inicia el servidor
   const port = 3001;
