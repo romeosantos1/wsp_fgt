@@ -15,9 +15,7 @@ const listarUsuarios = (({RUC})=>{
       query.where({RUC}).first()
     }
     const datos = await query
-    .finally(() => {
-      db.destroy(); // Cerrar la conexión después de la consulta
-    });
+   
     resolve(datos)
     })
 })
@@ -41,22 +39,54 @@ const listarPlantillas = (({RUC})=>{
     //console.log({res})  
   })
 })
-const actualizarPlantillas =  ( ({RUC})=>{
-  return new Promise(async(resolve,reject)=>{
-    /*const usuario = await listarUsuarios({RUC})
-    const plantillas = await listarPlantillas({RUC})*/
-    const arrIns = []
-    Promise.all([
-      listarUsuarios({RUC}),
-      listarPlantillas({RUC})
-    ]).then(([usuario,plantillas])=>{
-      plantillas = plantillas.data
-      plantillas.forEach()
-      console.log({usuario,plantillas})
-      resolve(usuario)
-    })
+const buscarPlantilla = (({ID,title})=>{
+  return new Promise(async (resolve,reject)=>{
+    const data = await db("template").where({title,id_usuario:ID}).first()
+    resolve(data)
   })
 })
+const actualizarPlantillas = async ({ RUC }) => {
+  try {
+    const {ID} = await listarUsuarios({ RUC });
+    if (!ID) throw new Error('Usuario no encontrado');
+    const plantillas = await listarPlantillas({ RUC });
+    if (!plantillas || !plantillas.data) throw new Error('No se encontraron plantillas');
+    console.log({ID})
+    const arrIns = plantillas.data.map(v => {
+      const params = {
+        id_template: v.id,
+        idioma: v.language,
+        title: v.name,
+        id_usuario:ID
+      };
+
+      v.components.forEach(w => {
+        if (w.type === 'BODY') {
+          params.contenido_template = w.text;
+        }
+      });
+
+      return db('template')
+        .insert(params)
+        .onConflict('id_template')
+        .merge([
+          'id_template',
+          'idioma',
+          'title',
+          'contenido_template',
+          'id_usuario'
+        ]);
+    });
+
+    await Promise.all(arrIns); // ⚡️ Asegura que todas las consultas terminen antes de continuar.
+
+    return 'Actualización completada';
+  } catch (error) {
+    console.error('Error en actualizarPlantillas:', error);
+    return 'Error en actualización';
+  }
+};
+
 app.post('/send-message', async (req, res) => {   
     const { to, message, RUC } = req.body;
 
@@ -87,13 +117,13 @@ app.post('/send-message', async (req, res) => {
     }
   });
 app.post('/send-template', async (req, res) => {   
-    const { to,RUC } = req.body;
-  
+    const { to,RUC,title } = req.body;
     if (!to ) {
       return res.status(400).json({ error: 'El número de teléfono es necesario.' });
     }
-    const {token,api_key} = await listarUsuarios({RUC}) 
-    
+    const {token,api_key,ID} = await listarUsuarios({RUC}) 
+    const {plantilla,idioma} = await buscarPlantilla({ID,title})
+    console.log({plantilla})
     try {
       const response = await axios.post(
         `https://graph.facebook.com/v22.0/${api_key}/messages`,
@@ -102,9 +132,9 @@ app.post('/send-template', async (req, res) => {
           to,
           "type": "template",
           template: {
-            "name": "hello_world",
+            "name": title,
             "language": {
-              "code": "en_US"
+              "code": idioma
             },
         }
         },
@@ -137,9 +167,7 @@ app.get('/show-template',async(req,res)=>{
 app.post('/registrar-usuario',async(req,res)=>{
   const {RUC,razon_social,direccion,email,token,api_key,bussines_id} = req.body;
   const [ID] = await db("USUARIO").insert({RUC,razon_social,direccion,email,bussines_id,token})
-  await db("usuario_key").insert({api_key,USUARIO_ID:ID}).finally(() => {
-    db.destroy(); // Cerrar la conexión después de la consulta
-  });
+  await db("usuario_key").insert({api_key,USUARIO_ID:ID})
   //res.json("Registrado correctamente con el codigo",ID);
   console.log("Xd")
   res.json("Registrado Correctamente");  
@@ -147,10 +175,10 @@ app.post('/registrar-usuario',async(req,res)=>{
 app.post("/actualizar-plantilla",async(req,res)=>{
   const { RUC } = req.body;
   const datos = await actualizarPlantillas({RUC})
-  //const usuarios = await listarUsuarios({RUC})
-  //const datos = await listarPlantillas({RUC})
-  //console.log({datos})
-  res.json("(Y)");  
+  res.json("Actualizado Correctamente");  
+})
+app.post("/enviar-mensaje",async(req,res)=>{
+  const {RUC,telefono,template} = req.body;
 })
   // Inicia el servidor
   const port = 3001;

@@ -9,6 +9,12 @@ const db = knex({
     user: 'root',
     //password: 'masterkey',
     database: 'fgtwsapp'
+  }, pool: {
+    min: 1,
+    max: 5,  // Aumenta un poco el límite de conexiones
+    acquireTimeoutMillis: 20000, // Espera hasta 20s antes de fallar
+    idleTimeoutMillis: 30000,  // Cierra conexiones inactivas después de 30s
+    createTimeoutMillis: 5000
   }
 });
 
