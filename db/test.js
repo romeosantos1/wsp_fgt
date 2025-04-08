@@ -30,3 +30,12 @@ Content-Length: 465
     "token":"EAA4UBHuigRoBO1ro07cksMiB4mznZAKii3xGrobRmKc06V6PDfnMMptZC1gePyPc2wUm6ghumr1dZCwqFhdP6iqvz3ZBCJnAgRCPO548ExIJAnuzvnUziFZAqbvIp0Wj0KzKo8JWRNK63Yb3ZBK2uG248F3DesclKqQILTZCq3ylbZB5M5VNrLwgFIhdXGOr66YDxR2XZA5GkGkCpTI3LxKk5u8Oq",
     "bussines_id":"666154952475906"
 }
+
+
+
+
+
+SELECT * FROM `compra` WHERE usuario_id =2 and '2025.04.03' between inicio_vigencia and FIN_VIGENCIA;
+
+;
+

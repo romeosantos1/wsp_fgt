@@ -13,8 +13,12 @@
     "axios": "^1.8.4",
     "express": "^4.21.2",
     "knex": "^3.1.0",
+    "moment": "^2.30.1",
+    "momentjs": "^2.0.0",
     "mysql2": "^3.14.0",
     "nodejs": "^0.0.0",
-    "nodemon": "^3.1.9"
+    "nodemon": "^3.1.9",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1"
   }
 }
