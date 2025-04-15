@@ -99,3 +99,4 @@ ALTER TABLE template_etiqueta ADD CONSTRAINT template_etiqueta_template FOREIGN 
 
 -- End of file.
 
+alter table usuarios add estado integer not null;
